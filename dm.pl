@@ -100,12 +100,10 @@ sub prune {
     my %following = map { $_->{id}, $_->{screen_name} } $t->following;
     my @masters   = $t->masters;
 
-    async {
-        for ( keys %following ) {
-            if ( not $followers{$_} and not $following{$_} ~~ @masters ) {
-                $t->unfollow( $_ );
-                print "- $_\n";
-            }
+    for ( keys %following ) {
+        if ( not $followers{$_} and not $following{$_} ~~ @masters ) {
+            $t->unfollow( $_ );
+            print "- $_\n";
         }
     }
 }
