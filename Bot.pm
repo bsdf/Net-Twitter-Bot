@@ -2,6 +2,7 @@ package Bot;
 
 use strict;
 use warnings;
+
 use Net::Twitter;
 
 sub new {
@@ -158,7 +159,7 @@ sub __handle_commands {
 
     for my $dm ( @dms ) {
         my $txt = $dm->{text};
-        if ( $txt ~~ /^(\w+)\s(.*)/ ) {
+        if ( $txt ~~ /^(\w+)(?:\s(.*))?/ ) {
             my $cmd = $1;
             if ( $self->{command_map}->{$cmd} ) {
                 print "~ executing command: $cmd\n";
@@ -265,6 +266,32 @@ sub fav {
     my $id   = shift || return;
 
     $self->{t}->create_favorite( $id );
+}
+
+sub followers {
+    my $self = shift;
+    my $t    = $self->{t};
+
+    my @followers;
+    for ( my $cursor = -1, my $r; $cursor; $cursor = $r->{next_cursor} ) {
+        $r = $t->followers({ cursor => $cursor });
+        push @followers, @{ $r->{users} };
+    }
+
+    return @followers;
+}
+
+sub following {
+    my $self = shift;
+    my $t    = $self->{t};
+
+    my @following;
+    for ( my $cursor = -1, my $r; $cursor; $cursor = $r->{next_cursor} ) {
+        $r = $t->following({ cursor => $cursor });
+        push @following, @{ $r->{users} };
+    }
+
+    return @following;
 }
 
 1;

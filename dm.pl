@@ -1,12 +1,16 @@
 use warnings;
 use strict;
+
 use secrets;
 use Bot;
 use Data::Dumper;
+use fullw;
 
 my %command_map = (
     'search'    => \&search_and_follow,
     'favsearch' => \&search_and_fav,
+    'follow'    => \&follow,
+    'prune'     => \&prune,
 );
 
 my $bot = Bot->new(
@@ -30,6 +34,7 @@ $bot->run();
 
 sub callback {
     my $t = shift;
+    update_colors( $t );
     tweet_dms( $t );
 }
 
@@ -38,22 +43,35 @@ sub tweet_dms {
     my @dms = $t->get_dms();
 
     for ( @dms ) {
-    	eval {
+        eval {
             $t->delete_dm( $_->{id} );
             print "> $_->{text}\n";
-            $t->tweet( $_->{text} ); 
-        };
+            $t->tweet( fullw( $_->{text} ) ); 
+        }; $t->__handle_error() if $@;
     }
+}
+
+sub update_colors {
+    my $t = shift;
+
+    $t->{t}->update_profile_colors({
+        profile_text_color           => random_color(),
+        profile_link_color           => random_color(),
+        profile_sidebar_fill_color   => random_color(),
+        profile_sidebar_border_color => random_color(),
+    });
 }
 
 sub search_and_follow {
     my $t     = shift;
     my $query = shift;
 
-    for ( $t->search( $query ) ) {
-    	my $user = $_->{from_user};
-    	print "+ $user\n";
-    	$t->follow( $user );
+    my @results = $t->search( $query );
+    my %uniq = map { $_->{from_user}, 1 } @results;
+
+    for ( keys %uniq ) {
+        $t->follow( $_ );
+        print "+ $_\n";
     }
 }
 
@@ -62,11 +80,40 @@ sub search_and_fav {
     my $query = shift;
 
     for ( $t->search( $query ) ) {
-    	print "<3 $_->{text}\n";
-    	$t->fav( $_->{id} );
+        print "<3 $_->{text}\n";
+        $t->fav( $_->{id} );
+    }
+}
+
+sub follow {
+    my $t = shift;
+    my $q = shift || return;
+    
+    print "+ following $q\n";
+    $t->follow( $q );
+}
+
+sub prune {
+    my $t = shift;
+
+    my %followers = map { $_->{id}, $_->{screen_name} } $t->followers;
+    my %following = map { $_->{id}, $_->{screen_name} } $t->following;
+    my @masters   = $t->masters;
+
+    async {
+        for ( keys %following ) {
+            if ( not $followers{$_} and not $following{$_} ~~ @masters ) {
+                $t->unfollow( $_ );
+                print "- $_\n";
+            }
+        }
     }
 }
 
 sub ddump {
     print Data::Dumper->Dump([shift]);
+}
+
+sub random_color {
+    return join( "", map { sprintf "%02x", rand(255) } (0..2) );
 }
