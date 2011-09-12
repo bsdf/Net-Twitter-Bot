@@ -10,9 +10,9 @@ sub bot_callback {
 }
 
 sub test_command {
-    print "executed test_command.\n";
+    return 1;
 }
-
+    
 my $bot = Bot->new(
     id                  => 'testbot',
     description         => 'desc',
@@ -30,12 +30,11 @@ my $bot = Bot->new(
     command_map         => { test_command => \&test_command },
 );
 
-ok( defined($bot), '$bot is created' );
-ok( $bot->{id} eq 'testbot', '$bot->{id}' );
-ok( $bot->{description} eq 'desc', '$bot->{description}' );
-
-ok( $bot->{commands_enabled}, '$bot->{commands_enabled}' );
-ok( '_M_A_S_T_E_R_' ~~ $bot->{masters}, '$bot->{masters}' );
+ok( defined($bot)                      , 'testing Bot creation' );
+ok( $bot->{id} eq 'testbot'            , '    $bot->{id}' );
+ok( $bot->{description} eq 'desc'      , '    $bot->{description}' );
+ok( $bot->{commands_enabled}           , '    $bot->{commands_enabled}' );
+ok( '_M_A_S_T_E_R_' ~~ $bot->{masters} , '    $bot->{masters}' );
 
 ok( defined($bot->{t}), 'Net::Twitter is created' );
 
@@ -43,8 +42,9 @@ $bot->{masters} = [qw/asdf bsdf/];
 ok( 'asdf' ~~ $bot->{masters}, 'masters contains asdf' );
 ok( 'bsdf' ~~ $bot->{masters}, 'masters contains bsdf' );
 
-ok( defined($bot->{command_map}), 'testing command_map' );
-ok( defined($bot->{command_map}{test_command}), '  test_command exists' );
+ok( defined($bot->{command_map})                 , 'testing command_map' );
+ok( defined($bot->{command_map}->{test_command}) , '    test_command exists' );
+ok( $bot->{command_map}->{test_command}->()      , '    test_command executes' );
 
 
 done_testing();
