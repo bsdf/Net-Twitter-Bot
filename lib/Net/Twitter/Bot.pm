@@ -1,4 +1,5 @@
-package Bot;
+package Net::Twitter::Bot;
+# ABSTRACT: create twitter bots
 
 use strict;
 use warnings;
