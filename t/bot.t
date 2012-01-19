@@ -1,9 +1,7 @@
 use Test::More;
 use Data::Dumper;
 
-
-use_ok( 'Bot' );
-use_ok( 'secrets' );
+use_ok( 'Net::Twitter::Bot' );
 
 sub bot_callback {
     print "called back.\n";
@@ -12,8 +10,16 @@ sub bot_callback {
 sub test_command {
     return 1;
 }
-    
-my $bot = Bot->new(
+
+# fill this in.
+my %secrets = (
+    consumer_key        => '',
+    consumer_secret     => '',
+    access_token        => '',
+    access_token_secret => '',
+);
+
+my $bot = Net::Twitter::Bot->new(
     id                  => 'testbot',
     description         => 'desc',
     # oauth crap
